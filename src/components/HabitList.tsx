@@ -8,7 +8,7 @@ import type { HabitType } from "../types/habit"
 type Filter = "all" | HabitType
 
 export const HabitList = () => {
-  const { habits, loading, error, addHabit } = useHabits()
+  const { habits, loading, error, addHabit, deleteHabit } = useHabits()
   const [filter, setFilter] = useState<Filter>("all")
   const [showForm, setShowForm] = useState(false)
 
@@ -65,7 +65,7 @@ export const HabitList = () => {
       ) : (
         <div className="space-y-3">
           {filteredHabits.map((habit) => (
-            <HabitCard key={habit.id} habit={habit} />
+            <HabitCard key={habit.id} habit={habit} onDelete={deleteHabit} />
           ))}
         </div>
       )}

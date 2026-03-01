@@ -1,7 +1,7 @@
 import type { Tables, TablesInsert } from "./database"
 
 export type HabitType = "bad" | "good" | "todo"
-export type Period = "day" | "workday" | "week" | "month"
+export type Period = "day" | "workday" | "week" | "month" | "n_per_week"
 
 export type Habit = Tables<"habits">
 export type HabitInsert = TablesInsert<"habits">

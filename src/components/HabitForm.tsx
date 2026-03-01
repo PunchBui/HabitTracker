@@ -20,11 +20,13 @@ export const HabitForm = ({ onSubmit, onCancel }: HabitFormProps) => {
   const [period, setPeriod] = useState<Period>("day")
   const [targetDay, setTargetDay] = useState<number | null>(null)
   const [targetDate, setTargetDate] = useState<number | null>(null)
+  const [targetCount, setTargetCount] = useState<number | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return
+    if (period === "n_per_week" && (!targetCount || targetCount < 1 || targetCount > 7)) return
     setSubmitting(true)
     const habit: HabitInsert = {
       name: name.trim(),
@@ -32,6 +34,7 @@ export const HabitForm = ({ onSubmit, onCancel }: HabitFormProps) => {
       period,
       target_day: period === "week" ? targetDay : null,
       target_date: period === "month" ? targetDate : null,
+      target_count: period === "n_per_week" ? targetCount : null,
     }
     const result = await onSubmit(habit)
     setSubmitting(false)
@@ -41,6 +44,7 @@ export const HabitForm = ({ onSubmit, onCancel }: HabitFormProps) => {
       setPeriod("day")
       setTargetDay(null)
       setTargetDate(null)
+      setTargetCount(null)
     }
   }
 
@@ -85,10 +89,12 @@ export const HabitForm = ({ onSubmit, onCancel }: HabitFormProps) => {
         value={period}
         targetDay={targetDay}
         targetDate={targetDate}
-        onChange={(p, td, tdt) => {
+        targetCount={targetCount}
+        onChange={(p, td, tdt, tc) => {
           setPeriod(p)
           setTargetDay(td)
           setTargetDate(tdt)
+          setTargetCount(tc)
         }}
       />
 

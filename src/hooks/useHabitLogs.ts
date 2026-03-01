@@ -33,5 +33,15 @@ export const useHabitLogs = () => {
     []
   )
 
-  return { error, fetchLogsForHabit, addLog }
+  const deleteLog = useCallback(async (logId: string): Promise<boolean> => {
+    setError(null)
+    const { error: err } = await supabase.from("habit_logs").delete().eq("id", logId)
+    if (err) {
+      setError(err.message)
+      return false
+    }
+    return true
+  }, [])
+
+  return { error, fetchLogsForHabit, addLog, deleteLog }
 }

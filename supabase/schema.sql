@@ -3,9 +3,10 @@ CREATE TABLE IF NOT EXISTS habits (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
   type text NOT NULL CHECK (type IN ('bad', 'good', 'todo')),
-  period text NOT NULL CHECK (period IN ('day', 'workday', 'week', 'month')),
+  period text NOT NULL CHECK (period IN ('day', 'workday', 'week', 'month', 'n_per_week')),
   target_day int CHECK (target_day >= 0 AND target_day <= 6),
   target_date int CHECK (target_date >= 1 AND target_date <= 31),
+  target_count int CHECK (target_count >= 1 AND target_count <= 7),
   created_at timestamptz NOT NULL DEFAULT now(),
   user_id uuid
 );

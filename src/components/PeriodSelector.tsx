@@ -4,7 +4,13 @@ type PeriodSelectorProps = {
   value: Period
   targetDay: number | null
   targetDate: number | null
-  onChange: (period: Period, targetDay: number | null, targetDate: number | null) => void
+  targetCount: number | null
+  onChange: (
+    period: Period,
+    targetDay: number | null,
+    targetDate: number | null,
+    targetCount: number | null
+  ) => void
 }
 
 const PERIODS: { value: Period; label: string }[] = [
@@ -12,6 +18,7 @@ const PERIODS: { value: Period; label: string }[] = [
   { value: "workday", label: "Workdays (Mon–Fri)" },
   { value: "week", label: "Once per week" },
   { value: "month", label: "Once per month" },
+  { value: "n_per_week", label: "At least n times per week" },
 ]
 
 const DAY_OPTIONS = [
@@ -24,21 +31,33 @@ const DAY_OPTIONS = [
   { value: 6, label: "Saturday" },
 ]
 
-export const PeriodSelector = ({ value, targetDay, targetDate, onChange }: PeriodSelectorProps) => {
+export const PeriodSelector = ({
+  value,
+  targetDay,
+  targetDate,
+  targetCount,
+  onChange,
+}: PeriodSelectorProps) => {
   const handlePeriodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const period = e.target.value as Period
     const newTargetDay = period === "week" ? (targetDay ?? 1) : null
     const newTargetDate = period === "month" ? (targetDate ?? 1) : null
-    onChange(period, newTargetDay, newTargetDate)
+    const newTargetCount = period === "n_per_week" ? (targetCount ?? 3) : null
+    onChange(period, newTargetDay, newTargetDate, newTargetCount)
   }
 
   const handleTargetDayChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onChange(value, parseInt(e.target.value, 10), targetDate)
+    onChange(value, parseInt(e.target.value, 10), targetDate, targetCount)
   }
 
   const handleTargetDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value ? parseInt(e.target.value, 10) : null
-    onChange(value, targetDay, v ?? null)
+    onChange(value, targetDay, v ?? null, targetCount)
+  }
+
+  const handleTargetCountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value ? parseInt(e.target.value, 10) : null
+    onChange(value, targetDay, targetDate, v ?? null)
   }
 
   return (
@@ -83,6 +102,21 @@ export const PeriodSelector = ({ value, targetDay, targetDate, onChange }: Perio
             value={targetDate ?? ""}
             onChange={handleTargetDateChange}
             placeholder="e.g. 1"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          />
+        </div>
+      )}
+
+      {value === "n_per_week" && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Times per week (1–7)</label>
+          <input
+            type="number"
+            min={1}
+            max={7}
+            value={targetCount ?? ""}
+            onChange={handleTargetCountChange}
+            placeholder="e.g. 3"
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
         </div>

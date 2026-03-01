@@ -47,6 +47,7 @@ export type Database = {
           id: string
           name: string
           period: string
+          target_count: number | null
           target_date: number | null
           target_day: number | null
           type: string
@@ -57,6 +58,7 @@ export type Database = {
           id?: string
           name: string
           period: string
+          target_count?: number | null
           target_date?: number | null
           target_day?: number | null
           type: string
@@ -67,6 +69,7 @@ export type Database = {
           id?: string
           name?: string
           period?: string
+          target_count?: number | null
           target_date?: number | null
           target_day?: number | null
           type?: string
