@@ -1,8 +1,13 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useAllLogs } from "../hooks/useAllLogs"
 import { useHabits } from "../hooks/useHabits"
 import { useHabitLogs } from "../hooks/useHabitLogs"
-import { computeStreak, getStreakLabel } from "../utils/streak"
+import { computeStreak, getStreakLabel, computeStreakDeadline, formatTimeRemaining } from "../utils/streak"
+
+type StreakInfo = {
+  current: number
+  deadline: Date | null
+}
 
 const TYPE_STYLES: Record<string, string> = {
   bad: "bg-red-100 text-red-800",
@@ -27,8 +32,14 @@ export const Dashboard = () => {
   const { habits } = useHabits()
   const { fetchLogsForHabit, deleteLog } = useHabitLogs()
 
-  const [streaks, setStreaks] = useState<Map<string, number>>(new Map())
+  const [streaks, setStreaks] = useState<Map<string, StreakInfo>>(new Map())
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [, setTick] = useState<number>(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => setTick((t) => t + 1), 60_000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleDeleteLog = async (logId: string) => {
     setDeletingId(logId)
@@ -39,16 +50,28 @@ export const Dashboard = () => {
 
   useEffect(() => {
     const loadStreaks = async () => {
-      const map = new Map<string, number>()
+      const map = new Map<string, StreakInfo>()
       for (const habit of habits) {
         const habitLogs = await fetchLogsForHabit(habit.id)
         const { current } = computeStreak(habit, habitLogs)
-        map.set(habit.id, current)
+        const deadline = computeStreakDeadline(habit, current)
+        map.set(habit.id, { current, deadline })
       }
       setStreaks(map)
     }
     loadStreaks()
   }, [habits, fetchLogsForHabit, logs])
+
+  const sortedHabits = useMemo(() => {
+    return [...habits].sort((a, b) => {
+      const deadlineA = streaks.get(a.id)?.deadline
+      const deadlineB = streaks.get(b.id)?.deadline
+      if (!deadlineA && !deadlineB) return 0
+      if (!deadlineA) return 1
+      if (!deadlineB) return -1
+      return deadlineA.getTime() - deadlineB.getTime()
+    })
+  }, [habits, streaks])
 
   return (
     <div className="space-y-6">
@@ -57,17 +80,28 @@ export const Dashboard = () => {
         {habits.length === 0 ? (
           <p className="text-sm text-gray-500">No habits yet. Add habits to see streaks.</p>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {habits.map((habit) => {
-              const streak = streaks.get(habit.id) ?? 0
+          <div className="flex flex-col gap-2">
+            {sortedHabits.map((habit) => {
+              const info = streaks.get(habit.id)
+              const streak = info?.current ?? 0
               const label = getStreakLabel(habit.period, streak)
+              const timeLeft = info?.deadline ? formatTimeRemaining(info.deadline) : null
               return (
                 <div
                   key={habit.id}
-                  className={`rounded-lg border border-gray-200 bg-white px-3 py-2 ${TYPE_STYLES[habit.type] ?? "bg-gray-100 text-gray-800"}`}
+                  className={`flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 ${TYPE_STYLES[habit.type] ?? "bg-gray-100 text-gray-800"}`}
                 >
-                  <span className="font-medium">{habit.name}</span>
-                  {label ? <span className="ml-2 text-sm">— {label}</span> : null}
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{habit.name}</span>
+                    {label ? <span className="text-sm opacity-75">— {label}</span> : null}
+                  </div>
+                  {timeLeft ? (
+                    <span className="ml-2 shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                      {timeLeft}
+                    </span>
+                  ) : (
+                    <span className="ml-2 shrink-0 text-xs text-gray-400">No streak</span>
+                  )}
                 </div>
               )
             })}

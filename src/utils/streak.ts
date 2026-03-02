@@ -166,3 +166,70 @@ export const getStreakLabel = (period: string, count: number): string => {
           : "month"
   return `${count} ${unit} streak`
 }
+
+const getNextWorkday = (date: Date): Date => {
+  const d = new Date(date)
+  d.setDate(d.getDate() + 1)
+  while (!isWorkday(d)) {
+    d.setDate(d.getDate() + 1)
+  }
+  return d
+}
+
+export const computeStreakDeadline = (habit: Habit, streak: number): Date | null => {
+  if (streak === 0) return null
+
+  const now = new Date()
+  const period = habit.period
+
+  if (period === "day") {
+    const deadline = new Date(now)
+    deadline.setHours(0, 0, 0, 0)
+    deadline.setDate(deadline.getDate() + 2)
+    return deadline
+  }
+
+  if (period === "workday") {
+    const nextWd = getNextWorkday(now)
+    const deadline = new Date(nextWd)
+    deadline.setHours(0, 0, 0, 0)
+    deadline.setDate(deadline.getDate() + 1)
+    return deadline
+  }
+
+  if (period === "week" || period === "n_per_week") {
+    const dayOfWeek = now.getDay()
+    const daysUntilNextMonday = dayOfWeek === 0 ? 1 : 8 - dayOfWeek
+    const deadline = new Date(now)
+    deadline.setHours(0, 0, 0, 0)
+    deadline.setDate(deadline.getDate() + daysUntilNextMonday + 7)
+    return deadline
+  }
+
+  if (period === "month") {
+    const deadline = new Date(now.getFullYear(), now.getMonth() + 2, 1)
+    return deadline
+  }
+
+  return null
+}
+
+export const formatTimeRemaining = (deadline: Date): string => {
+  const now = new Date()
+  const diffMs = deadline.getTime() - now.getTime()
+  if (diffMs <= 0) return "expired"
+
+  const totalMinutes = Math.floor(diffMs / 60000)
+  const totalHours = Math.floor(totalMinutes / 60)
+  const days = Math.floor(totalHours / 24)
+  const hours = totalHours % 24
+  const minutes = totalMinutes % 60
+
+  if (days > 0) {
+    return hours > 0 ? `${days}d ${hours}h left` : `${days}d left`
+  }
+  if (totalHours > 0) {
+    return minutes > 0 ? `${totalHours}h ${minutes}m left` : `${totalHours}h left`
+  }
+  return `${totalMinutes}m left`
+}
