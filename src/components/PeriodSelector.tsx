@@ -19,6 +19,7 @@ const PERIODS: { value: Period; label: string }[] = [
   { value: "week", label: "Once per week" },
   { value: "month", label: "Once per month" },
   { value: "n_per_week", label: "At least n times per week" },
+  { value: "n_per_day", label: "At least n times per day" },
 ]
 
 const DAY_OPTIONS = [
@@ -42,7 +43,8 @@ export const PeriodSelector = ({
     const period = e.target.value as Period
     const newTargetDay = period === "week" ? (targetDay ?? 1) : null
     const newTargetDate = period === "month" ? (targetDate ?? 1) : null
-    const newTargetCount = period === "n_per_week" ? (targetCount ?? 3) : null
+    const newTargetCount =
+      period === "n_per_week" ? (targetCount ?? 3) : period === "n_per_day" ? (targetCount ?? 3) : null
     onChange(period, newTargetDay, newTargetDate, newTargetCount)
   }
 
@@ -114,6 +116,21 @@ export const PeriodSelector = ({
             type="number"
             min={1}
             max={7}
+            value={targetCount ?? ""}
+            onChange={handleTargetCountChange}
+            placeholder="e.g. 3"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+          />
+        </div>
+      )}
+
+      {value === "n_per_day" && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Times per day (1–24)</label>
+          <input
+            type="number"
+            min={1}
+            max={24}
             value={targetCount ?? ""}
             onChange={handleTargetCountChange}
             placeholder="e.g. 3"

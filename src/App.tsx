@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { HabitList } from "./components/HabitList"
-import { Dashboard } from "./components/Dashboard"
+import { Logs } from "./components/Logs"
 
-type View = "habits" | "dashboard"
+type View = "habits" | "logs"
 
 const App = () => {
   const [activeView, setActiveView] = useState<View>("habits")
@@ -21,16 +21,16 @@ const App = () => {
               Habits
             </button>
             <button
-              onClick={() => setActiveView("dashboard")}
-              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${activeView === "dashboard" ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
+              onClick={() => setActiveView("logs")}
+              className={`rounded-lg px-3 py-1.5 text-sm font-medium ${activeView === "logs" ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"}`}
             >
-              Dashboard
+              Logs
             </button>
           </nav>
         </div>
       </header>
       <main className="mx-auto max-w-2xl px-4 py-6">
-        {activeView === "habits" ? <HabitList /> : <Dashboard />}
+        {activeView === "habits" ? <HabitList /> : <Logs />}
       </main>
     </div>
   )

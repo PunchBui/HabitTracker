@@ -6,6 +6,8 @@ import type { HabitInsert } from "../types/habit"
 type HabitFormProps = {
   onSubmit: (habit: HabitInsert) => Promise<Habit | null>
   onCancel?: () => void
+  initialHabit?: Habit | null
+  onUpdate?: (id: string, habit: HabitInsert) => Promise<Habit | null>
 }
 
 const TYPES: { value: HabitType; label: string }[] = [
@@ -14,19 +16,35 @@ const TYPES: { value: HabitType; label: string }[] = [
   { value: "todo", label: "Todo" },
 ]
 
-export const HabitForm = ({ onSubmit, onCancel }: HabitFormProps) => {
-  const [name, setName] = useState("")
-  const [type, setType] = useState<HabitType>("good")
-  const [period, setPeriod] = useState<Period>("day")
-  const [targetDay, setTargetDay] = useState<number | null>(null)
-  const [targetDate, setTargetDate] = useState<number | null>(null)
-  const [targetCount, setTargetCount] = useState<number | null>(null)
+const HABIT_COLORS: { value: string; hex: string }[] = [
+  { value: "#ef4444", hex: "#ef4444" },
+  { value: "#f97316", hex: "#f97316" },
+  { value: "#eab308", hex: "#eab308" },
+  { value: "#22c55e", hex: "#22c55e" },
+  { value: "#14b8a6", hex: "#14b8a6" },
+  { value: "#3b82f6", hex: "#3b82f6" },
+  { value: "#8b5cf6", hex: "#8b5cf6" },
+  { value: "#ec4899", hex: "#ec4899" },
+  { value: "#6b7280", hex: "#6b7280" },
+]
+
+export const HabitForm = ({ onSubmit, onCancel, initialHabit, onUpdate }: HabitFormProps) => {
+  const [name, setName] = useState(initialHabit?.name ?? "")
+  const [type, setType] = useState<HabitType>((initialHabit?.type as HabitType) ?? "good")
+  const [period, setPeriod] = useState<Period>((initialHabit?.period as Period) ?? "day")
+  const [targetDay, setTargetDay] = useState<number | null>(initialHabit?.target_day ?? null)
+  const [targetDate, setTargetDate] = useState<number | null>(initialHabit?.target_date ?? null)
+  const [targetCount, setTargetCount] = useState<number | null>(initialHabit?.target_count ?? null)
+  const [color, setColor] = useState<string | null>(initialHabit?.color ?? null)
   const [submitting, setSubmitting] = useState(false)
+
+  const isEditMode = !!initialHabit && !!onUpdate
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!name.trim()) return
     if (period === "n_per_week" && (!targetCount || targetCount < 1 || targetCount > 7)) return
+    if (period === "n_per_day" && (!targetCount || targetCount < 1 || targetCount > 24)) return
     setSubmitting(true)
     const habit: HabitInsert = {
       name: name.trim(),
@@ -34,17 +52,22 @@ export const HabitForm = ({ onSubmit, onCancel }: HabitFormProps) => {
       period,
       target_day: period === "week" ? targetDay : null,
       target_date: period === "month" ? targetDate : null,
-      target_count: period === "n_per_week" ? targetCount : null,
+      target_count: period === "n_per_week" || period === "n_per_day" ? targetCount : null,
+      color: color || null,
     }
-    const result = await onSubmit(habit)
+    const result = isEditMode && initialHabit ? await onUpdate!(initialHabit.id, habit) : await onSubmit(habit)
     setSubmitting(false)
     if (result) {
-      setName("")
-      setType("good")
-      setPeriod("day")
-      setTargetDay(null)
-      setTargetDate(null)
-      setTargetCount(null)
+      if (!isEditMode) {
+        setName("")
+        setType("good")
+        setPeriod("day")
+        setTargetDay(null)
+        setTargetDate(null)
+        setTargetCount(null)
+        setColor(null)
+      }
+      onCancel?.()
     }
   }
 
@@ -98,13 +121,40 @@ export const HabitForm = ({ onSubmit, onCancel }: HabitFormProps) => {
         }}
       />
 
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Color</label>
+        <div className="mt-1 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => setColor(null)}
+            title="Default (type color)"
+            className={`h-8 w-8 rounded-full border-2 transition-shadow ${
+              color === null ? "border-gray-900 ring-2 ring-gray-400" : "border-gray-300 hover:border-gray-400"
+            }`}
+            style={{ background: "repeating-conic-gradient(#e5e7eb 0% 25%, #f3f4f6 0% 50%) 50% / 12px 12px" }}
+          />
+          {HABIT_COLORS.map((c) => (
+            <button
+              key={c.value}
+              type="button"
+              onClick={() => setColor(c.value)}
+              title={c.value}
+              className={`h-8 w-8 rounded-full border-2 transition-shadow ${
+                color === c.value ? "border-gray-900 ring-2 ring-offset-1 ring-gray-500" : "border-gray-300 hover:border-gray-400"
+              }`}
+              style={{ backgroundColor: c.hex }}
+            />
+          ))}
+        </div>
+      </div>
+
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={submitting || !name.trim()}
           className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
         >
-          {submitting ? "Adding…" : "Add habit"}
+          {submitting ? (isEditMode ? "Saving…" : "Adding…") : isEditMode ? "Save" : "Add habit"}
         </button>
         {onCancel && (
           <button

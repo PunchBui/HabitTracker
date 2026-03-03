@@ -43,6 +43,7 @@ export type Database = {
       }
       habits: {
         Row: {
+          color: string | null
           created_at: string
           id: string
           name: string
@@ -54,6 +55,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          color?: string | null
           created_at?: string
           id?: string
           name: string
@@ -65,6 +67,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          color?: string | null
           created_at?: string
           id?: string
           name?: string

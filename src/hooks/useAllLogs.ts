@@ -7,7 +7,7 @@ export type HabitLogWithHabit = {
   habit_id: string
   logged_at: string
   note: string | null
-  habits: Pick<Habit, "id" | "name" | "type" | "period">
+  habits: Pick<Habit, "id" | "name" | "type" | "period" | "color">
 }
 
 export const useAllLogs = (limit = 100) => {
@@ -30,7 +30,8 @@ export const useAllLogs = (limit = 100) => {
           id,
           name,
           type,
-          period
+          period,
+          color
         )
       `
       )
@@ -62,7 +63,8 @@ export const useAllLogs = (limit = 100) => {
             id,
             name,
             type,
-            period
+            period,
+            color
           )
         `
         )

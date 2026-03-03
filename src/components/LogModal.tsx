@@ -1,3 +1,4 @@
+import { format } from "date-fns"
 import { useState } from "react"
 import type { Habit } from "../types/habit"
 
@@ -8,10 +9,7 @@ type LogModalProps = {
 }
 
 export const LogModal = ({ habit, onLog, onClose }: LogModalProps) => {
-  const [loggedAt, setLoggedAt] = useState(() => {
-    const d = new Date()
-    return d.toISOString().slice(0, 16)
-  })
+  const [loggedAt, setLoggedAt] = useState(() => format(new Date(), "yyyy-MM-dd'T'HH:mm"))
   const [note, setNote] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
