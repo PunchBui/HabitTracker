@@ -12,8 +12,6 @@ import {
   startOfDay,
   startOfWeek,
   subDays,
-  subMonths,
-  subWeeks,
 } from "date-fns"
 import type { Habit, HabitLog } from "../types/habit"
 
