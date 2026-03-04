@@ -3,7 +3,7 @@ import { LogModal } from "./LogModal"
 import { HabitForm } from "./HabitForm"
 import { useHabitLogs } from "../hooks/useHabitLogs"
 import { getHabitStyle } from "../utils/habitStyle"
-import { computeStreak, getRemainingThisWeek, getRemainingToday, getStreakLabel, isPeriodComplete } from "../utils/streak"
+import { computeStreak, getPeriodDeadline, getRemainingThisWeek, getRemainingToday, getStreakLabel, formatTimeRemaining, isPeriodComplete } from "../utils/streak"
 import type { Habit, HabitInsert, HabitLog } from "../types/habit"
 
 const getPeriodLabel = (habit: { period: string; target_count?: number | null }): string => {
@@ -95,6 +95,22 @@ export const HabitCard = ({ habit, onLogSuccess, onDelete, onUpdate }: HabitCard
             <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-400">
               <span>{logCount} log{logCount !== 1 ? "s" : ""}</span>
               {streak > 0 && <span className="font-medium text-amber-600">{getStreakLabel(habit.period, streak)}</span>}
+              {streak > 0 && !periodComplete && (() => {
+                const deadline = getPeriodDeadline(habit)
+                if (!deadline) return null
+                const timeLeft = formatTimeRemaining(deadline)
+                if (timeLeft === "expired") return null
+                const streakLabel = getStreakLabel(habit.period, streak)
+                return (
+                  <span
+                    className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700"
+                    title={`Complete by ${deadline.toLocaleString()} to keep streak`}
+                  >
+                    {timeLeft}
+                    {streakLabel ? ` · ${streakLabel}` : ""}
+                  </span>
+                )
+              })()}
               {remainingThisWeek !== null && remainingThisWeek > 0 && (
                 <span className="font-medium text-indigo-600">{remainingThisWeek} remaining this week</span>
               )}
