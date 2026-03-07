@@ -2,6 +2,38 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Supabase migrations
+
+To apply database migrations to your Supabase project:
+
+### Option A: Supabase CLI (recommended)
+
+1. **Link your project** (one-time):
+   ```bash
+   supabase login
+   supabase link --project-ref YOUR_PROJECT_REF
+   ```
+   Get `YOUR_PROJECT_REF` from the Supabase dashboard URL: `https://supabase.com/dashboard/project/<project-ref>`.
+
+2. **Push migrations** to the linked project:
+   ```bash
+   supabase db push
+   ```
+
+### Option B: Local development (requires Docker)
+
+```bash
+supabase start
+supabase db reset   # applies all migrations
+```
+
+### Option C: Run SQL manually
+
+If you prefer not to use the CLI, run each migration file in **Supabase Dashboard → SQL Editor** in order:
+
+- `supabase/migrations/20250301000000_add_habit_color.sql`
+- `supabase/migrations/20250301000001_add_habit_time_of_day.sql`
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh

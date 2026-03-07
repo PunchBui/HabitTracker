@@ -51,6 +51,7 @@ export type Database = {
           target_count: number | null
           target_date: number | null
           target_day: number | null
+          time_of_day: string | null
           type: string
           user_id: string | null
         }
@@ -63,6 +64,7 @@ export type Database = {
           target_count?: number | null
           target_date?: number | null
           target_day?: number | null
+          time_of_day?: string | null
           type: string
           user_id?: string | null
         }
@@ -75,6 +77,7 @@ export type Database = {
           target_count?: number | null
           target_date?: number | null
           target_day?: number | null
+          time_of_day?: string | null
           type?: string
           user_id?: string | null
         }

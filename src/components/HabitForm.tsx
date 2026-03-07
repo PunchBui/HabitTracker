@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { PeriodSelector } from "./PeriodSelector"
-import type { Habit, HabitType, Period } from "../types/habit"
+import type { Habit, HabitType, Period, TimeOfDay } from "../types/habit"
 import type { HabitInsert } from "../types/habit"
 
 type HabitFormProps = {
@@ -36,6 +36,9 @@ export const HabitForm = ({ onSubmit, onCancel, initialHabit, onUpdate }: HabitF
   const [targetDate, setTargetDate] = useState<number | null>(initialHabit?.target_date ?? null)
   const [targetCount, setTargetCount] = useState<number | null>(initialHabit?.target_count ?? null)
   const [color, setColor] = useState<string | null>(initialHabit?.color ?? null)
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay | null>(
+    (initialHabit?.time_of_day as TimeOfDay | null) ?? null
+  )
   const [submitting, setSubmitting] = useState(false)
 
   const isEditMode = !!initialHabit && !!onUpdate
@@ -54,6 +57,7 @@ export const HabitForm = ({ onSubmit, onCancel, initialHabit, onUpdate }: HabitF
       target_date: period === "month" ? targetDate : null,
       target_count: period === "n_per_week" || period === "n_per_day" ? targetCount : null,
       color: color || null,
+      time_of_day: timeOfDay,
     }
     const result = isEditMode && initialHabit ? await onUpdate!(initialHabit.id, habit) : await onSubmit(habit)
     setSubmitting(false)
@@ -66,6 +70,7 @@ export const HabitForm = ({ onSubmit, onCancel, initialHabit, onUpdate }: HabitF
         setTargetDate(null)
         setTargetCount(null)
         setColor(null)
+        setTimeOfDay(null)
       }
       onCancel?.()
     }
@@ -105,6 +110,39 @@ export const HabitForm = ({ onSubmit, onCancel, initialHabit, onUpdate }: HabitF
               {t.label}
             </button>
           ))}
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700">Time of day</label>
+        <div className="mt-1 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setTimeOfDay(null)}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              timeOfDay === null ? "bg-gray-800 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Any
+          </button>
+          <button
+            type="button"
+            onClick={() => setTimeOfDay("day")}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              timeOfDay === "day" ? "bg-amber-400 text-amber-950" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Day
+          </button>
+          <button
+            type="button"
+            onClick={() => setTimeOfDay("night")}
+            className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              timeOfDay === "night" ? "bg-indigo-900 text-indigo-100" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+            }`}
+          >
+            Night
+          </button>
         </div>
       </div>
 

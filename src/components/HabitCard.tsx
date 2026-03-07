@@ -77,22 +77,71 @@ export const HabitCard = ({ habit, onLogSuccess, onDelete, onUpdate }: HabitCard
   const periodComplete = isPeriodComplete(habit, logs)
   const habitStyle = getHabitStyle(habit)
 
+  const isDay = habit.time_of_day === "day"
+  const isNight = habit.time_of_day === "night"
+
+  const cardClasses =
+    "rounded-xl border p-4 shadow-sm transition-shadow hover:shadow-md " +
+    (isDay
+      ? "border-amber-200 bg-amber-50/80"
+      : isNight
+        ? "border-indigo-300 bg-indigo-50/80"
+        : "border-gray-200 bg-white")
+
+  const titleClasses =
+    "font-medium " +
+    (isDay ? "text-amber-950" : isNight ? "text-indigo-950" : "text-gray-900")
+
+  const periodTextClasses =
+    "mt-1 text-sm " +
+    (isDay ? "text-amber-800/90" : isNight ? "text-indigo-800/90" : "text-gray-500")
+
+  const metaClasses =
+    "mt-2 flex flex-wrap gap-2 text-xs " +
+    (isDay ? "text-amber-700/80" : isNight ? "text-indigo-700/80" : "text-gray-400")
+
+  const logBtnClasses =
+    "rounded-lg px-3 py-1.5 text-sm font-medium hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 " +
+    (isDay
+      ? "bg-amber-500 text-amber-950 hover:bg-amber-600 disabled:hover:bg-amber-500"
+      : isNight
+        ? "bg-indigo-600 text-white hover:bg-indigo-700 disabled:hover:bg-indigo-600"
+        : "bg-indigo-600 text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-indigo-600")
+
+  const editBtnClasses =
+    "rounded-lg border px-3 py-1.5 text-sm font-medium " +
+    (isDay
+      ? "border-amber-400 text-amber-800 hover:bg-amber-100"
+      : isNight
+        ? "border-indigo-400 text-indigo-800 hover:bg-indigo-100"
+        : "border-gray-300 text-gray-700 hover:bg-gray-100")
+
   return (
     <>
-      <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
+      <div className={cardClasses}>
         <div className="flex items-start justify-between gap-2">
           <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-medium text-gray-900">{habit.name}</h3>
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className={titleClasses}>{habit.name}</h3>
               <span
                 className={`rounded-full px-2 py-0.5 text-xs font-medium ${habitStyle.className}`}
                 style={habitStyle.style}
               >
                 {habit.type}
               </span>
+              {isDay && (
+                <span className="rounded-full bg-amber-200/90 px-2 py-0.5 text-xs font-medium text-amber-900">
+                  Day
+                </span>
+              )}
+              {isNight && (
+                <span className="rounded-full bg-indigo-200/90 px-2 py-0.5 text-xs font-medium text-indigo-900">
+                  Night
+                </span>
+              )}
             </div>
-            <p className="mt-1 text-sm text-gray-500">{periodLabel}</p>
-            <div className="mt-2 flex flex-wrap gap-2 text-xs text-gray-400">
+            <p className={periodTextClasses}>{periodLabel}</p>
+            <div className={metaClasses}>
               <span>{logCount} log{logCount !== 1 ? "s" : ""}</span>
               {streak > 0 && <span className="font-medium text-amber-600">{getStreakLabel(habit.period, streak)}</span>}
               {streak > 0 && !periodComplete && (() => {
@@ -130,15 +179,12 @@ export const HabitCard = ({ habit, onLogSuccess, onDelete, onUpdate }: HabitCard
               onClick={() => setShowLogModal(true)}
               disabled={periodComplete}
               title={periodComplete ? "Goal reached for this period" : undefined}
-              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-indigo-600"
+              className={logBtnClasses}
             >
               Log
             </button>
             {onUpdate && (
-              <button
-                onClick={() => setShowEditModal(true)}
-                className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
-              >
+              <button onClick={() => setShowEditModal(true)} className={editBtnClasses}>
                 Edit
               </button>
             )}

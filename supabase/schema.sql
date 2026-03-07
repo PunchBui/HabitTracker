@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS habits (
   target_date int CHECK (target_date >= 1 AND target_date <= 31),
   target_count int CHECK (target_count >= 1 AND target_count <= 24),
   color text,
+  time_of_day text CHECK (time_of_day IS NULL OR time_of_day IN ('day', 'night')),
   created_at timestamptz NOT NULL DEFAULT now(),
   user_id uuid
 );
