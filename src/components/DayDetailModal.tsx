@@ -1,4 +1,7 @@
 import { endOfDay, format, parseISO } from "date-fns"
+import { useState } from "react"
+import { LogModal } from "./LogModal"
+import { useHabitLogs } from "../hooks/useHabitLogs"
 import type { Habit, HabitLog } from "../types/habit"
 import { getHabitStyle } from "../utils/habitStyle"
 import {
@@ -14,6 +17,7 @@ type DayDetailModalProps = {
   habits: Habit[]
   habitLogsMap: Map<string, HabitLog[]>
   onClose: () => void
+  onLogSuccess?: () => void
 }
 
 const parseDateKey = (dateKey: string): Date => parseISO(dateKey + "T12:00:00")
@@ -23,10 +27,13 @@ export const DayDetailModal = ({
   habits,
   habitLogsMap,
   onClose,
+  onLogSuccess,
 }: DayDetailModalProps) => {
   const date = parseDateKey(dateKey)
   const endOfDayDate = endOfDay(date)
   const formattedDate = format(date, "EEEE, MMMM d, yyyy")
+  const { addLog } = useHabitLogs()
+  const [logModalHabit, setLogModalHabit] = useState<Habit | null>(null)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
@@ -62,19 +69,27 @@ export const DayDetailModal = ({
                     className="flex flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50/50 p-3"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span
-                        className="flex items-center gap-2 font-medium text-gray-900"
-                        style={style.style ? { color: style.style.color } : undefined}
-                      >
+                      <span className="flex items-center gap-2 font-medium text-gray-900">
                         <span
                           className="h-2.5 w-2.5 shrink-0 rounded-full"
                           style={{ backgroundColor: style.style?.backgroundColor ?? "#9ca3af" }}
                         />
                         {habit.name}
                       </span>
-                      <span className="shrink-0 text-xs font-medium text-amber-600">
-                        {streak > 0 ? getStreakLabel(habit.period, streak) : "—"}
-                      </span>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="text-xs font-medium text-amber-600">
+                          {streak > 0 ? getStreakLabel(habit.period, streak) : "—"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setLogModalHabit(habit)}
+                          disabled={completed}
+                          title={completed ? "Already completed for this day" : "Log for this day"}
+                          className="rounded-lg bg-indigo-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-indigo-600"
+                        >
+                          Log
+                        </button>
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-600">
                       <span>
@@ -100,6 +115,18 @@ export const DayDetailModal = ({
           )}
         </div>
       </div>
+
+      {logModalHabit && (
+        <LogModal
+          habit={logModalHabit}
+          initialLoggedAt={date}
+          onLog={async (habitId, loggedAt, note) => {
+            await addLog({ habit_id: habitId, logged_at: loggedAt.toISOString(), note })
+            onLogSuccess?.()
+          }}
+          onClose={() => setLogModalHabit(null)}
+        />
+      )}
     </div>
   )
 }

@@ -4,12 +4,15 @@ import type { Habit } from "../types/habit"
 
 type LogModalProps = {
   habit: Habit
+  initialLoggedAt?: Date
   onLog: (habitId: string, loggedAt: Date, note: string | null) => Promise<unknown>
   onClose: () => void
 }
 
-export const LogModal = ({ habit, onLog, onClose }: LogModalProps) => {
-  const [loggedAt, setLoggedAt] = useState(() => format(new Date(), "yyyy-MM-dd'T'HH:mm"))
+export const LogModal = ({ habit, initialLoggedAt, onLog, onClose }: LogModalProps) => {
+  const [loggedAt, setLoggedAt] = useState(() =>
+    initialLoggedAt ? format(initialLoggedAt, "yyyy-MM-dd'T'HH:mm") : format(new Date(), "yyyy-MM-dd'T'HH:mm")
+  )
   const [note, setNote] = useState("")
   const [submitting, setSubmitting] = useState(false)
 

@@ -34,7 +34,7 @@ type StreakInfo = {
 }
 
 export const HabitList = () => {
-  const { logs } = useAllLogs()
+  const { logs, fetchAllLogs } = useAllLogs()
   const { habits, loading, error, addHabit, updateHabit, deleteHabit } = useHabits()
   const { fetchLogsForHabit } = useHabitLogs()
   const [filter, setFilter] = useState<Filter>("all")
@@ -249,6 +249,7 @@ export const HabitList = () => {
           habits={habits}
           habitLogsMap={habitLogsMap}
           onClose={() => setSelectedDateKey(null)}
+          onLogSuccess={fetchAllLogs}
         />
       )}
 
