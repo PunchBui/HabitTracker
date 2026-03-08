@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { getRemainingThisWeek } from "./streak"
+import { getLongestStreak, getRemainingThisWeek } from "./streak"
 import type { Habit, HabitLog } from "../types/habit"
 
 const createHabit = (overrides: Partial<Habit> = {}): Habit =>
@@ -106,5 +106,44 @@ describe("getRemainingThisWeek", () => {
     const logs: HabitLog[] = [createLog("2025-03-05T09:00:00.000Z")]
     const remaining = getRemainingThisWeek(habit, logs, now)
     expect(remaining).toBeNull()
+  })
+})
+
+describe("getLongestStreak", () => {
+  it("returns the longest daily run", () => {
+    const habit = createHabit({ period: "day", target_count: null })
+    const logs: HabitLog[] = [
+      createLog("2025-03-01T09:00:00.000Z"),
+      createLog("2025-03-02T09:00:00.000Z"),
+      createLog("2025-03-03T09:00:00.000Z"),
+      createLog("2025-03-05T09:00:00.000Z"),
+      createLog("2025-03-06T09:00:00.000Z"),
+    ]
+    expect(getLongestStreak(habit, logs)).toBe(3)
+  })
+
+  it("counts only days that meet n_per_day target", () => {
+    const habit = createHabit({ period: "n_per_day", target_count: 2 })
+    const logs: HabitLog[] = [
+      createLog("2025-03-01T09:00:00.000Z"),
+      createLog("2025-03-01T10:00:00.000Z"),
+      createLog("2025-03-02T09:00:00.000Z"),
+      createLog("2025-03-03T09:00:00.000Z"),
+      createLog("2025-03-03T10:00:00.000Z"),
+      createLog("2025-03-04T09:00:00.000Z"),
+      createLog("2025-03-04T10:00:00.000Z"),
+    ]
+    expect(getLongestStreak(habit, logs)).toBe(2)
+  })
+
+  it("skips weekend gaps for workday habits", () => {
+    const habit = createHabit({ period: "workday", target_count: null })
+    const logs: HabitLog[] = [
+      createLog("2025-03-06T09:00:00.000Z"), // Thu
+      createLog("2025-03-07T09:00:00.000Z"), // Fri
+      createLog("2025-03-10T09:00:00.000Z"), // Mon
+      createLog("2025-03-12T09:00:00.000Z"), // Wed
+    ]
+    expect(getLongestStreak(habit, logs)).toBe(3)
   })
 })

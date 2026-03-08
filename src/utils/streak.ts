@@ -176,6 +176,100 @@ export const computeStreak = (habit: Habit, logs: HabitLog[], asOfDate?: Date): 
   return { current: 0 }
 }
 
+const getLongestConsecutiveRun = (
+  sortedKeys: string[],
+  areConsecutive: (previousKey: string, nextKey: string) => boolean
+): number => {
+  if (sortedKeys.length === 0) return 0
+
+  let longest = 1
+  let current = 1
+  for (let i = 1; i < sortedKeys.length; i++) {
+    if (areConsecutive(sortedKeys[i - 1], sortedKeys[i])) {
+      current++
+      if (current > longest) longest = current
+      continue
+    }
+    current = 1
+  }
+  return longest
+}
+
+export const getLongestStreak = (habit: Habit, logs: HabitLog[]): number => {
+  const validLogs = logs.filter((l) => l.logged_at && isValidLogDate(l.logged_at))
+  if (validLogs.length === 0) return 0
+
+  if (habit.period === "day") {
+    const dateKeys = [...new Set(validLogs.map((l) => getDateKey(l.logged_at)))].sort()
+    return getLongestConsecutiveRun(dateKeys, (previousKey, nextKey) => {
+      const previousDate = parseISO(previousKey + "T12:00:00")
+      return nextKey === getDateKey(addDays(previousDate, 1))
+    })
+  }
+
+  if (habit.period === "workday") {
+    const dateKeys = [...new Set(validLogs.map((l) => getDateKey(l.logged_at)))]
+      .filter((key) => isWorkday(parseISO(key + "T12:00:00")))
+      .sort()
+    return getLongestConsecutiveRun(dateKeys, (previousKey, nextKey) => {
+      const previousDate = parseISO(previousKey + "T12:00:00")
+      return nextKey === getDateKey(getNextWorkday(previousDate))
+    })
+  }
+
+  if (habit.period === "week") {
+    const weekKeys = [...new Set(validLogs.map((l) => getWeekKey(l.logged_at)))].sort()
+    return getLongestConsecutiveRun(weekKeys, (previousKey, nextKey) => {
+      const previousWeekStart = parseISO(previousKey + "T12:00:00")
+      return nextKey === getWeekKey(addWeeks(previousWeekStart, 1))
+    })
+  }
+
+  if (habit.period === "month") {
+    const monthKeys = [...new Set(validLogs.map((l) => getMonthKey(l.logged_at)))].sort()
+    return getLongestConsecutiveRun(monthKeys, (previousKey, nextKey) => {
+      const previousMonthDate = parseISO(previousKey + "-01T12:00:00")
+      return nextKey === getMonthKey(addMonths(previousMonthDate, 1))
+    })
+  }
+
+  if (habit.period === "n_per_week") {
+    const n = Number(habit.target_count) || 1
+    const logsByWeek = new Map<string, number>()
+    for (const log of validLogs) {
+      const weekKey = getWeekKey(log.logged_at)
+      logsByWeek.set(weekKey, (logsByWeek.get(weekKey) ?? 0) + 1)
+    }
+    const completedWeekKeys = [...logsByWeek.entries()]
+      .filter(([, count]) => count >= n)
+      .map(([key]) => key)
+      .sort()
+    return getLongestConsecutiveRun(completedWeekKeys, (previousKey, nextKey) => {
+      const previousWeekStart = parseISO(previousKey + "T12:00:00")
+      return nextKey === getWeekKey(addWeeks(previousWeekStart, 1))
+    })
+  }
+
+  if (habit.period === "n_per_day") {
+    const n = Number(habit.target_count) || 1
+    const logsByDate = new Map<string, number>()
+    for (const log of validLogs) {
+      const dateKey = getDateKey(log.logged_at)
+      logsByDate.set(dateKey, (logsByDate.get(dateKey) ?? 0) + 1)
+    }
+    const completedDateKeys = [...logsByDate.entries()]
+      .filter(([, count]) => count >= n)
+      .map(([key]) => key)
+      .sort()
+    return getLongestConsecutiveRun(completedDateKeys, (previousKey, nextKey) => {
+      const previousDate = parseISO(previousKey + "T12:00:00")
+      return nextKey === getDateKey(addDays(previousDate, 1))
+    })
+  }
+
+  return 0
+}
+
 /** Returns streak count from past periods only (excludes current period). Use when period is not complete. */
 export const getStreakFromHistory = (habit: Habit, logs: HabitLog[], now: Date = new Date()): number => {
   const validLogs = logs.filter((l) => l.logged_at && isValidLogDate(l.logged_at))

@@ -3,7 +3,7 @@ import { LogModal } from "./LogModal"
 import { HabitForm } from "./HabitForm"
 import { useHabitLogs } from "../hooks/useHabitLogs"
 import { getHabitStyle } from "../utils/habitStyle"
-import { computeStreak, getPeriodDeadline, getRemainingThisWeek, getRemainingToday, getStreakLabel, formatTimeRemaining, isPeriodComplete } from "../utils/streak"
+import { computeStreak, getLongestStreak, getPeriodDeadline, getRemainingThisWeek, getRemainingToday, getStreakLabel, formatTimeRemaining, isPeriodComplete } from "../utils/streak"
 import type { Habit, HabitInsert, HabitLog } from "../types/habit"
 
 const getPeriodLabel = (habit: { period: string; target_count?: number | null }): string => {
@@ -38,6 +38,7 @@ export const HabitCard = ({ habit, onLogSuccess, onDelete, onUpdate }: HabitCard
   const [deleting, setDeleting] = useState(false)
   const [logCount, setLogCount] = useState(0)
   const [streak, setStreak] = useState(0)
+  const [longestStreak, setLongestStreak] = useState<number>(0)
   const [logs, setLogs] = useState<HabitLog[]>([])
   const { fetchLogsForHabit, addLog } = useHabitLogs()
 
@@ -56,6 +57,7 @@ export const HabitCard = ({ habit, onLogSuccess, onDelete, onUpdate }: HabitCard
       setLogCount(fetchedLogs.length)
       const { current } = computeStreak(habit, fetchedLogs)
       setStreak(current)
+      setLongestStreak(getLongestStreak(habit, fetchedLogs))
     }
     load()
   }, [habit, fetchLogsForHabit])
@@ -63,10 +65,12 @@ export const HabitCard = ({ habit, onLogSuccess, onDelete, onUpdate }: HabitCard
   const handleLog = async (habitId: string, loggedAt: Date, note: string | null) => {
     const result = await addLog({ habit_id: habitId, logged_at: loggedAt.toISOString(), note })
     if (result) {
-      setLogs((prev) => [result, ...prev])
+      const updatedLogs = [result, ...logs]
+      setLogs(updatedLogs)
       setLogCount((c) => c + 1)
-      const { current } = computeStreak(habit, [result, ...logs])
+      const { current } = computeStreak(habit, updatedLogs)
       setStreak(current)
+      setLongestStreak(getLongestStreak(habit, updatedLogs))
       onLogSuccess?.()
     }
   }
@@ -144,6 +148,9 @@ export const HabitCard = ({ habit, onLogSuccess, onDelete, onUpdate }: HabitCard
             <div className={metaClasses}>
               <span>{logCount} log{logCount !== 1 ? "s" : ""}</span>
               {streak > 0 && <span className="font-medium text-amber-600">{getStreakLabel(habit.period, streak)}</span>}
+              <span className="font-medium text-violet-600">
+                Longest: {longestStreak > 0 ? getStreakLabel(habit.period, longestStreak) : "0"}
+              </span>
               {streak > 0 && !periodComplete && (() => {
                 const deadline = getPeriodDeadline(habit)
                 if (!deadline) return null
